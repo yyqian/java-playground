@@ -11,6 +11,7 @@
         <module>playground-parent</module>
         <module>playground-mock</module>
         <module>playground-general</module>
+        <module>playground-mybatis</module>
     </modules>
     <packaging>pom</packaging>
 
