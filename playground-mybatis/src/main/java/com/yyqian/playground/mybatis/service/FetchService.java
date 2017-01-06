@@ -62,7 +62,7 @@ public class FetchService {
 
         configuration.addMapper(dynamicMapperClass);
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(configuration);
-        List<Map<String, Object>> results;
+        List<Map<String, Object>> results = null;
         try (SqlSession session = sqlSessionFactory.openSession()) {
             WildMapper mapper = (WildMapper) session.getMapper(dynamicMapperClass);
             results = mapper.selectAll();
