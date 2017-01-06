@@ -23,7 +23,8 @@ import java.util.UUID;
 
 /**
  * Created on 2017-01-04T17:54:37+08:00.
- *
+ * TODO: Bug: 无法在 uber-jar 环境下获取 class
+ * TODO: 改进生成的方法，减少消耗
  * @author Yinyin Qian
  */
 public class MapperBuilder {
