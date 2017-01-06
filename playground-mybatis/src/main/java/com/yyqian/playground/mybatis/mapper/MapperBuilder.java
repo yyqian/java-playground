@@ -30,7 +30,7 @@ public class MapperBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(MapperBuilder.class);
 
     private final List<Statement> statements = new ArrayList<>();
-    private final CtClass target;
+    private final CtClass target = ClassPool.getDefault().getCtClass(TemplateMapper.class.getName());
     private String className;
 
     public MapperBuilder() throws NotFoundException {
@@ -38,7 +38,6 @@ public class MapperBuilder {
     }
 
     public MapperBuilder(String className) throws NotFoundException {
-        target = ClassPool.getDefault().getCtClass(TemplateMapper.class.getName());
         this.className = className;
     }
 

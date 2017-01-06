@@ -45,7 +45,7 @@ public class FetchService {
         try {
             mapperBuilder = new MapperBuilder();
         } catch (NotFoundException e) {
-            LOGGER.error(e.toString());
+            e.printStackTrace();
             return new ArrayList<>();
         }
         mapperBuilder.addStatement(new MapperBuilder.Statement(dataView.getSqlQuery(), "selectAll"));
