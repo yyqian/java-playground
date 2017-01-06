@@ -15,7 +15,7 @@ public class DataSourceUtilTest {
         assertEquals("com.mysql.jdbc.Driver", DataSourceUtil.getDriver("mysql"));
         assertEquals("org.postgresql.Driver", DataSourceUtil.getDriver("postgresql"));
         assertEquals("com.microsoft.sqlserver.jdbc.SQLServerDriver", DataSourceUtil.getDriver("sqlserver"));
-        assertEquals("oracle.jdbc.OracleDriver", DataSourceUtil.getDriver("oracle:thin"));
+        assertEquals("oracle.jdbc.OracleDriver", DataSourceUtil.getDriver("oracle"));
     }
 
 }
