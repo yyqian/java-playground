@@ -8,6 +8,6 @@ import java.util.Map;
  *
  * @author Yinyin Qian
  */
-public interface BaseMapper {
+public interface WildMapper {
     List<Map<String, Object>> selectAll();
 }
