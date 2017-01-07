@@ -23,14 +23,14 @@ public class FetchServiceTest {
 
     @Test
     public void fetchAll() throws Exception {
-        FetchService fetchService = new FetchService();
-        List<Map<String, Object>> results = fetchService.fetchAll(getDataView());
+        FetchService fetchService = new FetchService(new TransformService());
+        List<Map<String, Object>> results = fetchService.fetchAll(getMySQLDataView());
         assertNotNull(results);
         results.forEach(kvMap -> {
-            String str = kvMap.entrySet().stream()
+            String log = kvMap.entrySet().stream()
                     .map(entry -> entry.getKey() + "=" + entry.getValue())
                     .collect(Collectors.joining(", ", "{", "}"));
-            LOGGER.info(str);
+            LOGGER.info(log);
         });
     }
 
@@ -43,6 +43,30 @@ public class FetchServiceTest {
         dataView.setUsername("system");
         dataView.setPassword("oracle");
         dataView.setSqlQuery("select * from HR.JOBS");
+        return dataView;
+    }
+
+    private static DataView getPgSQLDataView() {
+        DataView dataView = new DataView();
+        dataView.setDbType("postgresql");
+        dataView.setHost("localhost");
+        dataView.setPort(5432);
+        dataView.setSpace("postgres");
+        dataView.setUsername("postgres");
+        dataView.setPassword("PatSnap2017");
+        dataView.setSqlQuery("select * from \"public\".\"post\"");
+        return dataView;
+    }
+
+    private static DataView getMySQLDataView() {
+        DataView dataView = new DataView();
+        dataView.setDbType("mysql");
+        dataView.setHost("localhost");
+        dataView.setPort(3306);
+        dataView.setSpace("test");
+        dataView.setUsername("root");
+        dataView.setPassword("PatSnap2017");
+        dataView.setSqlQuery("select * from user");
         return dataView;
     }
 }

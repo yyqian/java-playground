@@ -1,5 +1,10 @@
 package com.yyqian.playground.mybatis.domain;
 
+import org.hibernate.validator.constraints.NotEmpty;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created on 2017-01-05T16:03:16+08:00.
  *
@@ -7,13 +12,21 @@ package com.yyqian.playground.mybatis.domain;
  */
 public class DataView {
 
+    @NotEmpty
     private String dbType;
+    @NotEmpty
     private String host;
     private int port;
+    @NotEmpty
     private String space;
+    @NotEmpty
     private String username;
+    @NotEmpty
     private String password;
+    @NotEmpty
     private String sqlQuery;
+    private List<String> keyKeyMaps = new ArrayList<>();
+    private List<Transformer> transformers = new ArrayList<>();
 
     public DataView() {
     }
@@ -72,5 +85,21 @@ public class DataView {
 
     public void setSqlQuery(String sqlQuery) {
         this.sqlQuery = sqlQuery;
+    }
+
+    public List<String> getKeyKeyMaps() {
+        return keyKeyMaps;
+    }
+
+    public void setKeyKeyMaps(List<String> keyKeyMaps) {
+        this.keyKeyMaps = keyKeyMaps;
+    }
+
+    public List<Transformer> getTransformers() {
+        return transformers;
+    }
+
+    public void setTransformers(List<Transformer> transformers) {
+        this.transformers = transformers;
     }
 }

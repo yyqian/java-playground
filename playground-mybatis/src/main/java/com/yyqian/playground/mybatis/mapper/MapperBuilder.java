@@ -4,9 +4,12 @@ import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
+import javassist.CtNewMethod;
 import javassist.NotFoundException;
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ConstPool;
+import javassist.bytecode.MethodInfo;
+import javassist.bytecode.SignatureAttribute;
 import javassist.bytecode.annotation.Annotation;
 import javassist.bytecode.annotation.ArrayMemberValue;
 import javassist.bytecode.annotation.MemberValue;
@@ -18,33 +21,35 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 /**
  * Created on 2017-01-04T17:54:37+08:00.
- * TODO: Bug: 无法在 uber-jar 环境下获取 class
- * TODO: 改进生成的方法，减少消耗
+ *
  * @author Yinyin Qian
  */
 public class MapperBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(MapperBuilder.class);
 
     private final List<Statement> statements = new ArrayList<>();
-    private final CtClass target = ClassPool.getDefault().getCtClass(TemplateMapper.class.getName());
+    private final CtClass target;
     private String className;
 
-    public MapperBuilder() throws NotFoundException {
+    public MapperBuilder() {
         this("mybatis.dynamic." + UUID.randomUUID().toString().replace("-", ""));
     }
 
-    public MapperBuilder(String className) throws NotFoundException {
+    public MapperBuilder(String className) {
         this.className = className;
+        target = prepare(className);
     }
 
-    private interface TemplateMapper extends WildMapper {
-        @Override
-        List<Map<String, Object>> selectAll();
+    private CtClass prepare(String className) {
+        ClassPool classPool = ClassPool.getDefault();
+        CtClass target = classPool.makeInterface(className);
+        CtClass fakeParent = classPool.makeClass(ViewMapper.class.getName());
+        target.addInterface(fakeParent);
+        return target;
     }
 
     public String getClassName() {
@@ -55,31 +60,58 @@ public class MapperBuilder {
         this.className = className;
     }
 
-    public void addStatement(Statement statement) {
+    public MapperBuilder addStatement(Statement statement) {
         statements.add(statement);
+        return this;
     }
 
-    public Class<?> build() throws CannotCompileException, NoSuchMethodException {
+    public MapperBuilder setSqlQuery(String sql) {
+        statements.clear();
+        statements.add(new Statement(sql, ViewMapper.class.getDeclaredMethods()[0].getName()));
+        return this;
+    }
+
+    public Class<?> build() {
+        String returnType = "java.util.List";
+        String returnSignature =
+                "()Ljava/util/List<Ljava/util/Map<Ljava/lang/String;Ljava/lang/Object;>;>;";
         target.setName(className);
         statements.forEach(statement -> {
+            String methodName = statement.getMethodName();
+            CtMethod method = null;
+            try {
+                CtClass returnCtClass = ClassPool.getDefault().get(returnType);
+                method = CtNewMethod.abstractMethod(returnCtClass, methodName,
+                        null, null, target);
+            } catch (NotFoundException e) {
+                e.printStackTrace();
+            }
+            SignatureAttribute signatureAttribute = new SignatureAttribute(
+                    target.getClassFile().getConstPool(), returnSignature);
+            MethodInfo methodInfo = method.getMethodInfo();
+            methodInfo.addAttribute(signatureAttribute);
+            // prepare annotation
             ConstPool constPool = target.getClassFile().getConstPool();
-            AnnotationsAttribute attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
-            Annotation annotation = new Annotation(statement.getAnnotationName(), constPool);
             ArrayMemberValue annoValue = new ArrayMemberValue(constPool);
             MemberValue value = new StringMemberValue(statement.getSql(), constPool);
             annoValue.setValue(new MemberValue[]{value});
+            Annotation annotation = new Annotation(statement.getAnnotationName(), constPool);
             annotation.addMemberValue("value", annoValue);
-            LOGGER.info("Appending annotation: {}", annotation.toString());
+            AnnotationsAttribute attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
             attr.addAnnotation(annotation);
+            methodInfo.addAttribute(attr);
             try {
-                CtMethod ctMethod = target.getDeclaredMethod(statement.getMethodName());
-                LOGGER.info("Modifying method: {}", ctMethod.getName());
-                ctMethod.getMethodInfo().addAttribute(attr);
-            } catch (NotFoundException e) {
-                LOGGER.error(e.toString());
+                target.addMethod(method);
+            } catch (CannotCompileException e) {
+                e.printStackTrace();
             }
         });
-        Class<?> clazz = target.toClass();
+        Class<?> clazz = null;
+        try {
+            clazz = target.toClass();
+        } catch (CannotCompileException e) {
+            e.printStackTrace();
+        }
         checkClass(clazz);
         return clazz;
     }
@@ -112,14 +144,14 @@ public class MapperBuilder {
         }
     }
 
-    private static void checkClass(Class<?> clazz) throws NoSuchMethodException {
+    private static void checkClass(Class<?> clazz) {
         LOGGER.info("Class name: {}", clazz.getName());
         for (Class<?> intf : clazz.getInterfaces()) {
             LOGGER.info("Extended interface: {}", intf.getName());
         }
         for (Method method : clazz.getMethods()) {
             LOGGER.info("Method name: {}", method.getName());
-            LOGGER.info("Method return type: {}", method.getReturnType().getName());
+            LOGGER.info("Method return type: {}", method.getGenericReturnType().getTypeName());
             for (java.lang.annotation.Annotation annotation : method.getAnnotations()) {
                 LOGGER.info("Method annotation: {}", annotation);
             }

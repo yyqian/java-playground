@@ -1,11 +1,15 @@
 package com.yyqian.playground.mybatis.util;
 
 import com.yyqian.playground.mybatis.domain.DataView;
+import com.yyqian.playground.mybatis.domain.KeyKeyMap;
 
 import org.apache.ibatis.datasource.unpooled.UnpooledDataSource;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
@@ -24,7 +28,7 @@ public class DataSourceUtil {
         driverList.put("postgresql", "org.postgresql.Driver");
         driverList.put("sqlserver", "com.microsoft.sqlserver.jdbc.SQLServerDriver");
         driverList.put("oracle", "oracle.jdbc.OracleDriver");
-        urlFormatList.put("mysql", "jdbc:mysql://%s:%d/%s");
+        urlFormatList.put("mysql", "jdbc:mysql://%s:%d/%s?useSSL=false");
         urlFormatList.put("postgresql", "jdbc:postgresql://%s:%d/%s");
         urlFormatList.put("sqlserver", "jdbc:sqlserver://%s:%d;DatabaseName=%s");
         urlFormatList.put("oracle", "jdbc:oracle:thin:@%s:%d:%s");
@@ -55,5 +59,17 @@ public class DataSourceUtil {
 
     public static DataSource getDataSource(DataView dataView) {
         return getDataSource(dataView.getDbType(), dataView.getHost(), dataView.getPort(), dataView.getSpace(), dataView.getUsername(), dataView.getPassword());
+    }
+
+    public static KeyKeyMap parseKeyKeyMap(String str) {
+        String[] parts = str.split(":");
+        return new KeyKeyMap(parts[0], parts[1]);
+    }
+
+    public static List<KeyKeyMap> parseKeyKeyMap(List<String> strs) {
+        if (strs == null) {
+            return new ArrayList<>();
+        }
+        return strs.stream().map(DataSourceUtil::parseKeyKeyMap).collect(Collectors.toList());
     }
 }
