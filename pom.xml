@@ -13,6 +13,7 @@
         <module>playground-general</module>
         <module>playground-mybatis</module>
         <module>playground-microservice</module>
+        <module>playground-monolithic</module>
     </modules>
     <packaging>pom</packaging>
 
