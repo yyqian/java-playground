@@ -12,6 +12,7 @@
         <module>playground-mock</module>
         <module>playground-general</module>
         <module>playground-mybatis</module>
+        <module>playground-microservice</module>
     </modules>
     <packaging>pom</packaging>
 
