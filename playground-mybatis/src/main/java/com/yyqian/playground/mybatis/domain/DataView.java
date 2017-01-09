@@ -13,6 +13,7 @@ import java.util.List;
 public class DataView {
 
     private DatabaseSource databaseSource;
+    private WebserviceSource webserviceSource;
     @NotEmpty
     private String sqlQuery;
     private List<Transformer> transformers = new ArrayList<>();
@@ -42,5 +43,13 @@ public class DataView {
 
     public void setTransformers(List<Transformer> transformers) {
         this.transformers = transformers;
+    }
+
+    public WebserviceSource getWebserviceSource() {
+        return webserviceSource;
+    }
+
+    public void setWebserviceSource(WebserviceSource webserviceSource) {
+        this.webserviceSource = webserviceSource;
     }
 }
