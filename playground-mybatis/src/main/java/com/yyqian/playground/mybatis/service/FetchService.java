@@ -1,6 +1,7 @@
 package com.yyqian.playground.mybatis.service;
 
 import com.yyqian.playground.mybatis.domain.DataView;
+import com.yyqian.playground.mybatis.domain.DatabaseSource;
 import com.yyqian.playground.mybatis.mapper.MapperBuilder;
 import com.yyqian.playground.mybatis.mapper.ViewMapper;
 import com.yyqian.playground.mybatis.util.DataSourceUtil;
@@ -34,10 +35,12 @@ import javax.sql.DataSource;
 public class FetchService {
 
     private final TransformService transformService;
+    private final SourceService sourceService;
 
     @Autowired
-    public FetchService(TransformService transformService) {
+    public FetchService(TransformService transformService, SourceService sourceService) {
         this.transformService = transformService;
+        this.sourceService = sourceService;
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FetchService.class);
@@ -46,7 +49,9 @@ public class FetchService {
         Class<?> dynamicMapperClass = new MapperBuilder()
                 .setSqlQuery(dataView.getSqlQuery())
                 .build();
-        DataSource dataSource = DataSourceUtil.getDataSource(dataView);
+        DatabaseSource databaseSource = dataView.getDatabaseSource() == null ?
+                sourceService.getDatebaseSource() : dataView.getDatabaseSource();
+        DataSource dataSource = DataSourceUtil.getDataSource(databaseSource);
         TransactionFactory transactionFactory = new JdbcTransactionFactory();
         Environment environment = new Environment("runtimeDataSource", transactionFactory, dataSource);
         Configuration configuration = new Configuration(environment);
@@ -60,8 +65,7 @@ public class FetchService {
         if (results == null) {
             results = new ArrayList<>();
         }
-        List<String> keyKeyMapsStr = dataView.getKeyKeyMaps();
-        transformService.modifyKey(results, DataSourceUtil.parseKeyKeyMap(keyKeyMapsStr));
+        transformService.transform(results, dataView.getTransformers());
         return results;
     }
 }

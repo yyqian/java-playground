@@ -1,10 +1,13 @@
 package com.yyqian.playground.mybatis.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yyqian.playground.mybatis.domain.DataView;
+import com.yyqian.playground.mybatis.domain.DatabaseSource;
 
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.util.List;
 import java.util.Map;
@@ -20,10 +23,12 @@ import static org.junit.Assert.*;
 public class FetchServiceTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FetchServiceTest.class);
+    private static final String HOST = "192.168.6.231";
 
     @Test
     public void fetchAll() throws Exception {
-        FetchService fetchService = new FetchService(new TransformService());
+        SourceService sourceService = new SourceService(new StringRedisTemplate(), new ObjectMapper());
+        FetchService fetchService = new FetchService(new TransformService(new FilterService()), sourceService);
         List<Map<String, Object>> results = fetchService.fetchAll(getMySQLDataView());
         assertNotNull(results);
         results.forEach(kvMap -> {
@@ -34,38 +39,44 @@ public class FetchServiceTest {
         });
     }
 
-    private static DataView getDataView() {
+    private static DataView getOracleDataView() {
         DataView dataView = new DataView();
-        dataView.setDbType("oracle");
-        dataView.setHost("192.168.6.231");
-        dataView.setPort(49161);
-        dataView.setSpace("xe");
-        dataView.setUsername("system");
-        dataView.setPassword("oracle");
+        DatabaseSource source = new DatabaseSource();
+        source.setDbType("oracle");
+        source.setHost(HOST);
+        source.setPort(49161);
+        source.setSpace("xe");
+        source.setUsername("system");
+        source.setPassword("oracle");
+        dataView.setDatabaseSource(source);
         dataView.setSqlQuery("select * from HR.JOBS");
         return dataView;
     }
 
     private static DataView getPgSQLDataView() {
         DataView dataView = new DataView();
-        dataView.setDbType("postgresql");
-        dataView.setHost("localhost");
-        dataView.setPort(5432);
-        dataView.setSpace("postgres");
-        dataView.setUsername("postgres");
-        dataView.setPassword("PatSnap2017");
+        DatabaseSource source = new DatabaseSource();
+        source.setDbType("postgresql");
+        source.setHost(HOST);
+        source.setPort(5432);
+        source.setSpace("postgres");
+        source.setUsername("postgres");
+        source.setPassword("PatSnap2017");
+        dataView.setDatabaseSource(source);
         dataView.setSqlQuery("select * from \"public\".\"post\"");
         return dataView;
     }
 
     private static DataView getMySQLDataView() {
         DataView dataView = new DataView();
-        dataView.setDbType("mysql");
-        dataView.setHost("localhost");
-        dataView.setPort(3306);
-        dataView.setSpace("test");
-        dataView.setUsername("root");
-        dataView.setPassword("PatSnap2017");
+        DatabaseSource source = new DatabaseSource();
+        source.setDbType("mysql");
+        source.setHost(HOST);
+        source.setPort(3306);
+        source.setSpace("test");
+        source.setUsername("root");
+        source.setPassword("PatSnap2017");
+        dataView.setDatabaseSource(source);
         dataView.setSqlQuery("select * from user");
         return dataView;
     }

@@ -2,6 +2,7 @@ package com.yyqian.playground.mybatis.domain;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created on 2017-01-06T16:54:57+08:00.
@@ -29,5 +30,13 @@ public class Transformer {
 
     public void setValueFilters(List<String> valueFilters) {
         this.valueFilters = valueFilters;
+    }
+
+    @Override
+    public String toString() {
+        return "Transformer{"
+                + "keyMapper='" + keyMapper + '\''
+                + ", valueFilters=" + valueFilters.stream().collect(Collectors.joining(", ", "[", "]"))
+                + '}';
     }
 }

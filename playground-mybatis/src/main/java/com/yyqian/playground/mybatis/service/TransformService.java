@@ -1,7 +1,10 @@
 package com.yyqian.playground.mybatis.service;
 
 import com.yyqian.playground.mybatis.domain.KeyKeyMap;
+import com.yyqian.playground.mybatis.domain.Transformer;
+import com.yyqian.playground.mybatis.util.DataSourceUtil;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,21 +17,43 @@ import java.util.Map;
  */
 @Service
 public class TransformService {
-    public void modifyKey(Map<String, Object> row, List<KeyKeyMap> keyKeyMaps) {
-        if (keyKeyMaps == null || row == null) {
+
+    private final FilterService filterService;
+
+    @Autowired
+    public TransformService(FilterService filterService) {
+        this.filterService = filterService;
+    }
+
+    public void transform(List<Map<String, Object>> view, List<Transformer> transformers) {
+        if (view == null) {
             return;
         }
-        keyKeyMaps.forEach(keyKeyMap -> {
+        view.forEach(row -> transform(row, transformers));
+    }
+
+    public void transform(Map<String, Object> row, List<Transformer> transformers) {
+        if (transformers == null || row == null) {
+            return;
+        }
+        transformers.forEach(transformer -> {
+            KeyKeyMap keyKeyMap = DataSourceUtil.parseKeyKeyMap(transformer.getKeyMapper());
             if (row.containsKey(keyKeyMap.getFrom())) {
-                row.put(keyKeyMap.getTo(), row.remove(keyKeyMap.getFrom()));
+                String fromKey = keyKeyMap.getFrom();
+                Object targetValue = process(row.get(fromKey), transformer.getValueFilters());
+                row.remove(fromKey);
+                if (targetValue != null) {
+                    row.put(keyKeyMap.getTo(), targetValue);
+                }
             }
         });
     }
 
-    public void modifyKey(List<Map<String, Object>> view, List<KeyKeyMap> keyKeyMaps) {
-        if (view == null) {
-            return;
+    private Object process(Object rawValue, List<String> filters) {
+        Object targetValue = rawValue;
+        for (String filter : filters) {
+            targetValue = filterService.process(targetValue, filter);
         }
-        view.forEach(row -> modifyKey(row, keyKeyMaps));
+        return targetValue;
     }
 }

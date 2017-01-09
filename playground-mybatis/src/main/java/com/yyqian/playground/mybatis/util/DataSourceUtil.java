@@ -1,6 +1,7 @@
 package com.yyqian.playground.mybatis.util;
 
 import com.yyqian.playground.mybatis.domain.DataView;
+import com.yyqian.playground.mybatis.domain.DatabaseSource;
 import com.yyqian.playground.mybatis.domain.KeyKeyMap;
 
 import org.apache.ibatis.datasource.unpooled.UnpooledDataSource;
@@ -57,12 +58,17 @@ public class DataSourceUtil {
         return new UnpooledDataSource(driver, url, username, password);
     }
 
-    public static DataSource getDataSource(DataView dataView) {
-        return getDataSource(dataView.getDbType(), dataView.getHost(), dataView.getPort(), dataView.getSpace(), dataView.getUsername(), dataView.getPassword());
+    public static DataSource getDataSource(DatabaseSource databaseSource) {
+        return getDataSource(databaseSource.getDbType(), databaseSource.getHost(), databaseSource.getPort(), databaseSource.getSpace(), databaseSource.getUsername(), databaseSource.getPassword());
     }
 
     public static KeyKeyMap parseKeyKeyMap(String str) {
-        String[] parts = str.split(":");
+        String[] parts;
+        if (str.contains(":")) {
+            parts = str.split(":");
+        } else {
+            parts = new String[] {str, str};
+        }
         return new KeyKeyMap(parts[0], parts[1]);
     }
 

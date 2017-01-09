@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:v-on="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8"/>
+    <title>数据转换服务</title>
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+</head>
+<body>
+<div id="app-datasource">
+    <h2>数据源设置</h2>
+    <div>
+        <label>数据库类型：</label>
+        <input v-model="dbType"/>
+        <label>URL：</label>
+        <input v-model="host"/>
+        <label>端口号：</label>
+        <input v-model="port"/>
+        <label>库名：</label>
+        <input v-model="space"/>
+        <label>用户名：</label>
+        <input v-model="username"/>
+        <label>密码：</label>
+        <input v-model="password"/>
+        <br/>
+        <button v-on:click="saveDS">保存</button>
+        <button v-on:click="loadMySQL">加载示例</button>
+    </div>
+</div>
+<div id="app-transform">
+    <h2>转换列表</h2>
+    <div>
+        <table>
+            <tr>
+                <td>SQL 语句：</td>
+                <td colspan="4"><input v-model="sqlQuery" type="text" size="80"/></td>
+            </tr>
+            <tr>
+                <td>键映射</td>
+                <td colspan="4">值转换</td>
+            </tr>
+            <tr v-for="transformer in transformers">
+                <td><input v-model="transformer.keyMapper" type="text"/></td>
+                <td><input v-model="transformer.valueFilters[0]" type="text"/></td>
+                <td><input v-model="transformer.valueFilters[1]" type="text"/></td>
+                <td><input v-model="transformer.valueFilters[2]" type="text"/></td>
+                <td><input v-model="transformer.valueFilters[3]" type="text"/></td>
+            </tr>
+            <tr>
+                <td colspan="5">
+                    <button v-on:click="query">测试</button>
+                    <button v-on:click="clear">清空</button>
+                    <button v-on:click="load">加载示例</button>
+                </td>
+            </tr>
+        </table>
+        <pre><code class="javascript">{{result}}</code></pre>
+    </div>
+</div>
+<script>
+    $(function () {
+        var fetchDatasource = function (callback) {
+            $.get("/api/datasource", callback);
+        };
+        var saveDatasource = function (data) {
+            $.ajax({
+                url: '/api/datasource',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data)
+            });
+        };
+        var fetchData = function (data, callback) {
+            $.ajax({
+                url: '/api/dataview',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: callback
+            });
+        };
+        var appDatasource;
+        fetchDatasource(function (data) {
+            appDatasource = new Vue({
+                el: '#app-datasource',
+                data: data,
+                methods: {
+                    saveDS: function () {
+                        saveDatasource({
+                            dbType: this.dbType,
+                            host: this.host,
+                            port: this.port,
+                            space: this.space,
+                            username: this.username,
+                            password: this.password
+                        });
+                    }, loadMySQL: function () {
+                        this.dbType = "mysql";
+                        this.host = "192.168.6.231";
+                        this.port = 3306;
+                        this.space = "test";
+                        this.username = "root";
+                        this.password = "PatSnap2017";
+                    }
+                }
+            });
+        });
+        var appTransform = new Vue({
+            el: '#app-transform',
+            data: {
+                sqlQuery: "",
+                transformers: [{keyMapper: "", valueFilters: []},
+                    {keyMapper: "", valueFilters: []},
+                    {keyMapper: "", valueFilters: []},
+                    {keyMapper: "", valueFilters: []},
+                    {keyMapper: "", valueFilters: []}],
+                result: ""
+            },
+            methods: {
+                query: function () {
+                    fetchData({
+                        sqlQuery: this.sqlQuery,
+                        transformers: this.transformers
+                    }, function (data) {
+                        this.result = JSON.stringify(data, null, 4);
+                    }.bind(this));
+                },
+                clear: function () {
+                    this.sqlQuery = "";
+                    this.transformers = [{keyMapper: "", valueFilters: []},
+                        {keyMapper: "", valueFilters: []},
+                        {keyMapper: "", valueFilters: []},
+                        {keyMapper: "", valueFilters: []},
+                        {keyMapper: "", valueFilters: []}];
+                    this.result = "";
+                },
+                load: function () {
+                    this.sqlQuery = "select * from user";
+                    this.transformers = [{
+                        "keyMapper": "id:uuid",
+                        "valueFilters": []
+                    }, {
+                        "keyMapper": "email",
+                        "valueFilters": ["trim", "lowercase"]
+                    }, {
+                        "keyMapper": "username:name",
+                        "valueFilters": ["trim"]
+                    }, {
+                        "keyMapper": "mobile:cell",
+                        "valueFilters": ["substring;1;5"]
+                    }, {
+                        "keyMapper": "type",
+                        "valueFilters": ["map;0:1,2,3;1:4,5,6;2:7"]
+                    }, {
+                        "keyMapper": "updated_at:updated",
+                        "valueFilters": ["time"]
+                    }, {
+                        "keyMapper": "created_at:created",
+                        "valueFilters": ["date"]
+                    }];
+                }
+            }
+        });
+    });
+</script>
+</body>
+</html>
