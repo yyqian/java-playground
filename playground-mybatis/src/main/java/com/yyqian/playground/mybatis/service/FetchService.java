@@ -1,5 +1,7 @@
 package com.yyqian.playground.mybatis.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yyqian.playground.mybatis.domain.DataView;
 import com.yyqian.playground.mybatis.domain.DatabaseSource;
 import com.yyqian.playground.mybatis.domain.WebserviceSource;
@@ -26,6 +28,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,11 +45,13 @@ public class FetchService {
 
     private final TransformService transformService;
     private final SourceService sourceService;
+    private final ObjectMapper objectMapper;
 
     @Autowired
-    public FetchService(TransformService transformService, SourceService sourceService) {
+    public FetchService(TransformService transformService, SourceService sourceService, ObjectMapper objectMapper) {
         this.transformService = transformService;
         this.sourceService = sourceService;
+        this.objectMapper = objectMapper;
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FetchService.class);
@@ -94,7 +99,16 @@ public class FetchService {
         HttpEntity<String> entity = new HttpEntity<>(body);
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> data = restTemplate.exchange(url, HttpMethod.resolve(method), entity, String.class);
+        LOGGER.info(data.getBody());
+        TypeReference<List<Map<String, Object>>> resultType =  new TypeReference<List<Map<String, Object>>>() {};
         List<Map<String, Object>> results = null;
-        return null;
+        try {
+            if (format.equals("json")) {
+                results = objectMapper.readValue(data.getBody(), resultType);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return results;
     }
 }

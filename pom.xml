@@ -14,6 +14,7 @@
         <module>playground-mybatis</module>
         <module>playground-microservice</module>
         <module>playground-monolithic</module>
+        <module>playground-rest</module>
     </modules>
     <packaging>pom</packaging>
 

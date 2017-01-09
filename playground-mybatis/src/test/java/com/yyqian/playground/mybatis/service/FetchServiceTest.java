@@ -3,6 +3,7 @@ package com.yyqian.playground.mybatis.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yyqian.playground.mybatis.domain.DataView;
 import com.yyqian.playground.mybatis.domain.DatabaseSource;
+import com.yyqian.playground.mybatis.domain.WebserviceSource;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -27,9 +28,10 @@ public class FetchServiceTest {
 
     @Test
     public void fetchAll() throws Exception {
-        SourceService sourceService = new SourceService(new StringRedisTemplate(), new ObjectMapper());
-        FetchService fetchService = new FetchService(new TransformService(new FilterService()), sourceService);
-        List<Map<String, Object>> results = fetchService.fetchAll(getMySQLDataView());
+        ObjectMapper objectMapper = new ObjectMapper();
+        SourceService sourceService = new SourceService(new StringRedisTemplate(), objectMapper);
+        FetchService fetchService = new FetchService(new TransformService(new FilterService()), sourceService, objectMapper);
+        List<Map<String, Object>> results = fetchService.fetchAll(getWebserviceView());
         assertNotNull(results);
         results.forEach(kvMap -> {
             String log = kvMap.entrySet().stream()
@@ -78,6 +80,17 @@ public class FetchServiceTest {
         source.setPassword("PatSnap2017");
         dataView.setDatabaseSource(source);
         dataView.setSqlQuery("select * from user");
+        return dataView;
+    }
+
+    private static DataView getWebserviceView() {
+        DataView dataView = new DataView();
+        WebserviceSource source = new WebserviceSource();
+        source.setUri("http://localhost:8081/api/data");
+        source.setMethod("GET");
+        source.setDataFormat("json");
+        source.setRequestBody(null);
+        dataView.setWebserviceSource(source);
         return dataView;
     }
 }
