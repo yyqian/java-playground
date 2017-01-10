@@ -1,7 +1,5 @@
 package com.yyqian.playground.mybatis.domain;
 
-import org.hibernate.validator.constraints.NotEmpty;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +12,6 @@ public class DataView {
 
     private DatabaseSource databaseSource;
     private WebserviceSource webserviceSource;
-    @NotEmpty
     private String sqlQuery;
     private List<Transformer> transformers = new ArrayList<>();
 

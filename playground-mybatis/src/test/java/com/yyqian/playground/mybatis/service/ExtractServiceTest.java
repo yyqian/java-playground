@@ -21,17 +21,17 @@ import static org.junit.Assert.*;
  *
  * @author Yinyin Qian
  */
-public class FetchServiceTest {
+public class ExtractServiceTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FetchServiceTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExtractServiceTest.class);
     private static final String HOST = "192.168.6.231";
 
     @Test
     public void fetchAll() throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();
         SourceService sourceService = new SourceService(new StringRedisTemplate(), objectMapper);
-        FetchService fetchService = new FetchService(new TransformService(new FilterService()), sourceService, objectMapper);
-        List<Map<String, Object>> results = fetchService.fetchAll(getWebserviceView());
+        ExtractService extractService = new ExtractService(new TransformService(new FilterService()), sourceService, objectMapper);
+        List<Map<String, Object>> results = extractService.fetchAll(getWebserviceView());
         assertNotNull(results);
         results.forEach(kvMap -> {
             String log = kvMap.entrySet().stream()

@@ -2,7 +2,7 @@ package com.yyqian.playground.mybatis.controller;
 
 import com.yyqian.playground.mybatis.domain.DataView;
 import com.yyqian.playground.mybatis.domain.DatabaseSource;
-import com.yyqian.playground.mybatis.service.FetchService;
+import com.yyqian.playground.mybatis.service.ExtractService;
 import com.yyqian.playground.mybatis.service.SourceService;
 
 import org.slf4j.Logger;
@@ -26,13 +26,13 @@ import javax.validation.Valid;
 @RestController
 public class ApiController {
 
-    private final FetchService fetchService;
+    private final ExtractService extractService;
     private final SourceService sourceService;
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiController.class);
 
     @Autowired
-    public ApiController(FetchService fetchService, SourceService sourceService) {
-        this.fetchService = fetchService;
+    public ApiController(ExtractService extractService, SourceService sourceService) {
+        this.extractService = extractService;
         this.sourceService = sourceService;
     }
 
@@ -40,7 +40,7 @@ public class ApiController {
     public List<Map<String, Object>> getData(@Valid @RequestBody DataView dataView) {
         LOGGER.info(dataView.toString());
         dataView.getTransformers().forEach(transformer -> LOGGER.info(transformer.toString()));
-        return fetchService.fetchAll(dataView);
+        return extractService.fetchAll(dataView);
     }
 
     @RequestMapping(value = "/api/datasource", method = RequestMethod.POST)

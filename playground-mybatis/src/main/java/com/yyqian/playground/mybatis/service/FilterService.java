@@ -52,6 +52,7 @@ public class FilterService {
 
     public Object process(Object rawValue, String filter) {
         LOGGER.info("rawValue:{}, filter:{}", rawValue, filter);
+
         Object target = rawValue;
         if (filter.contains(";")) {
             int idx = filter.indexOf(";");

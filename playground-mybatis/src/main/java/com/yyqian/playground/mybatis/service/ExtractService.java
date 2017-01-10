@@ -9,8 +9,6 @@ import com.yyqian.playground.mybatis.mapper.MapperBuilder;
 import com.yyqian.playground.mybatis.mapper.ViewMapper;
 import com.yyqian.playground.mybatis.util.DataSourceUtil;
 
-import javassist.CannotCompileException;
-
 import org.apache.ibatis.mapping.Environment;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
@@ -23,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -41,20 +38,20 @@ import javax.sql.DataSource;
  * @author Yinyin Qian
  */
 @Service
-public class FetchService {
+public class ExtractService {
 
     private final TransformService transformService;
     private final SourceService sourceService;
     private final ObjectMapper objectMapper;
 
     @Autowired
-    public FetchService(TransformService transformService, SourceService sourceService, ObjectMapper objectMapper) {
+    public ExtractService(TransformService transformService, SourceService sourceService, ObjectMapper objectMapper) {
         this.transformService = transformService;
         this.sourceService = sourceService;
         this.objectMapper = objectMapper;
     }
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FetchService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExtractService.class);
 
     public List<Map<String, Object>> fetchAll(DataView dataView) {
         if (dataView.getSqlQuery() != null) {
@@ -70,8 +67,9 @@ public class FetchService {
         Class<?> dynamicMapperClass = new MapperBuilder()
                 .setSqlQuery(dataView.getSqlQuery())
                 .build();
-        DatabaseSource databaseSource = dataView.getDatabaseSource() == null ?
-                sourceService.getDatebaseSource() : dataView.getDatabaseSource();
+        DatabaseSource databaseSource = dataView.getDatabaseSource() == null
+                ? sourceService.getDatebaseSource()
+                : dataView.getDatabaseSource();
         DataSource dataSource = DataSourceUtil.getDataSource(databaseSource);
         TransactionFactory transactionFactory = new JdbcTransactionFactory();
         Environment environment = new Environment("runtimeDataSource", transactionFactory, dataSource);
@@ -100,15 +98,19 @@ public class FetchService {
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> data = restTemplate.exchange(url, HttpMethod.resolve(method), entity, String.class);
         LOGGER.info(data.getBody());
-        TypeReference<List<Map<String, Object>>> resultType =  new TypeReference<List<Map<String, Object>>>() {};
+        TypeReference<List<Map<String, Object>>> resultType = new TypeReference<List<Map<String, Object>>>() {
+        };
         List<Map<String, Object>> results = null;
-        try {
-            if (format.equals("json")) {
+        if (format.equals("json")) {
+            try {
                 results = objectMapper.readValue(data.getBody(), resultType);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } else {
+            results = new ArrayList<>();
         }
+        transformService.transform(results, dataView.getTransformers());
         return results;
     }
 }

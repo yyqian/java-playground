@@ -33,13 +33,13 @@
         <table>
             <tr>
                 <td>SQL 语句：</td>
-                <td colspan="4"><input v-model="sqlQuery" type="text" size="80"/></td>
+                <td colspan="4"><input v-model="request.sqlQuery" type="text" size="80"/></td>
             </tr>
             <tr>
                 <td>键映射</td>
-                <td colspan="4">值转换</td>
+                <td colspan="4">值转换（Filter 列表：lowercase, uppercase, trim, date, time, drop, substring, map）</td>
             </tr>
-            <tr v-for="transformer in transformers">
+            <tr v-for="transformer in request.transformers">
                 <td><input v-model="transformer.keyMapper" type="text"/></td>
                 <td><input v-model="transformer.valueFilters[0]" type="text"/></td>
                 <td><input v-model="transformer.valueFilters[1]" type="text"/></td>
@@ -54,7 +54,18 @@
                 </td>
             </tr>
         </table>
-        <pre><code class="javascript">{{result}}</code></pre>
+        <table border="1px">
+            <tr>
+                <td>
+                    <p>请求参数：</p>
+                    <pre><code class="javascript">{{request}}</code></pre>
+                </td>
+                <td>
+                    <p>返回结果：</p>
+                    <pre><code class="javascript">{{result}}</code></pre>
+                </td>
+            </tr>
+        </table>
     </div>
 </div>
 <script>
@@ -108,56 +119,59 @@
         var appTransform = new Vue({
             el: '#app-transform',
             data: {
-                sqlQuery: "",
-                transformers: [{keyMapper: "", valueFilters: []},
-                    {keyMapper: "", valueFilters: []},
-                    {keyMapper: "", valueFilters: []},
-                    {keyMapper: "", valueFilters: []},
-                    {keyMapper: "", valueFilters: []}],
+                request: {
+                    sqlQuery: "",
+                    transformers: [{keyMapper: "", valueFilters: []},
+                        {keyMapper: "", valueFilters: []},
+                        {keyMapper: "", valueFilters: []},
+                        {keyMapper: "", valueFilters: []},
+                        {keyMapper: "", valueFilters: []}]
+                },
                 result: ""
             },
             methods: {
                 query: function () {
-                    fetchData({
-                        sqlQuery: this.sqlQuery,
-                        transformers: this.transformers
-                    }, function (data) {
+                    fetchData(this.request, function (data) {
                         this.result = JSON.stringify(data, null, 4);
                     }.bind(this));
                 },
                 clear: function () {
-                    this.sqlQuery = "";
-                    this.transformers = [{keyMapper: "", valueFilters: []},
-                        {keyMapper: "", valueFilters: []},
-                        {keyMapper: "", valueFilters: []},
-                        {keyMapper: "", valueFilters: []},
-                        {keyMapper: "", valueFilters: []}];
+                    this.request = {
+                        sqlQuery: "",
+                        transformers: [{keyMapper: "", valueFilters: []},
+                            {keyMapper: "", valueFilters: []},
+                            {keyMapper: "", valueFilters: []},
+                            {keyMapper: "", valueFilters: []},
+                            {keyMapper: "", valueFilters: []}]
+                    };
                     this.result = "";
                 },
                 load: function () {
-                    this.sqlQuery = "select * from user";
-                    this.transformers = [{
-                        "keyMapper": "id:uuid",
-                        "valueFilters": []
-                    }, {
-                        "keyMapper": "email",
-                        "valueFilters": ["trim", "lowercase"]
-                    }, {
-                        "keyMapper": "username:name",
-                        "valueFilters": ["trim"]
-                    }, {
-                        "keyMapper": "mobile:cell",
-                        "valueFilters": ["substring;1;5"]
-                    }, {
-                        "keyMapper": "type",
-                        "valueFilters": ["map;0:1,2,3;1:4,5,6;2:7"]
-                    }, {
-                        "keyMapper": "updated_at:updated",
-                        "valueFilters": ["time"]
-                    }, {
-                        "keyMapper": "created_at:created",
-                        "valueFilters": ["date"]
-                    }];
+                    this.request = {
+                        sqlQuery: "select * from user",
+                        transformers: [{
+                            "keyMapper": "id:uuid",
+                            "valueFilters": []
+                        }, {
+                            "keyMapper": "email",
+                            "valueFilters": ["trim", "lowercase"]
+                        }, {
+                            "keyMapper": "username:name",
+                            "valueFilters": ["trim"]
+                        }, {
+                            "keyMapper": "mobile:cell",
+                            "valueFilters": ["substring;1;5"]
+                        }, {
+                            "keyMapper": "type",
+                            "valueFilters": ["map;0:1,2,3;1:4,5,6;2:7"]
+                        }, {
+                            "keyMapper": "updated_at:updated",
+                            "valueFilters": ["time"]
+                        }, {
+                            "keyMapper": "created_at:created",
+                            "valueFilters": ["date"]
+                        }]
+                    };
                 }
             }
         });
