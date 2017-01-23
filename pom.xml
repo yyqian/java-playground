@@ -15,6 +15,7 @@
         <module>playground-microservice</module>
         <module>playground-monolithic</module>
         <module>playground-rest</module>
+        <module>playground-rx</module>
     </modules>
     <packaging>pom</packaging>
 

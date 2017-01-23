@@ -42,6 +42,16 @@
                 <artifactId>javassist</artifactId>
                 <version>3.21.0-GA</version>
             </dependency>
+            <dependency>
+                <groupId>io.reactivex.rxjava2</groupId>
+                <artifactId>rxjava</artifactId>
+                <version>2.0.4</version>
+            </dependency>
+            <dependency>
+                <groupId>io.reactivex</groupId>
+                <artifactId>rxjava</artifactId>
+                <version>1.2.5</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
